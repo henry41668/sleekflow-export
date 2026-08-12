@@ -8,7 +8,8 @@ BASE_ENDPOINT = "https://api.sleekflow.io/api/customObjects/crm_campaign_replies
 
 headers = {
     "Accept": "application/json",
-    "X-Sleekflow-Api-Key": API_KEY
+    "X-Sleekflow-Api-Key": API_KEY,
+    "Content-Type": "application/json"
 }
 
 all_records = []
@@ -17,21 +18,28 @@ page = 1
 
 while True:
 
-    params = {
-        "limit": 1000
-    }
-
-    if next_token:
-        params["ContinuationToken"] = next_token
-
     print("=" * 50)
     print(f"Requesting Page {page}")
 
-    response = requests.get(
-        BASE_ENDPOINT,
-        headers=headers,
-        params=params
-    )
+    if page == 1:
+
+        response = requests.get(
+            BASE_ENDPOINT,
+            headers=headers,
+            params={
+                "limit": 1000
+            }
+        )
+
+    else:
+
+        response = requests.get(
+            BASE_ENDPOINT,
+            headers=headers,
+            json={
+                "ContinuationToken": next_token
+            }
+        )
 
     print(f"HTTP Status: {response.status_code}")
 
@@ -44,11 +52,15 @@ while True:
 
     records = data.get("records", [])
 
-    print(f"Records Retrieved: {len(records)}")
+    print(
+        f"Records Retrieved: {len(records)}"
+    )
 
     all_records.extend(records)
 
-    next_token = data.get("nextContinuationToken")
+    next_token = data.get(
+        "nextContinuationToken"
+    )
 
     if not next_token:
         print("No more pages.")
@@ -57,15 +69,21 @@ while True:
     page += 1
 
 print("=" * 50)
-print(f"Total Records Retrieved: {len(all_records)}")
+print(
+    f"Total Records Retrieved: {len(all_records)}"
+)
 
 rows = []
 
 for record in all_records:
 
-    property_values = record.get("propertyValues", {})
+    property_values = record.get(
+        "propertyValues",
+        {}
+    )
 
     rows.append({
+
         "primaryPropertyValue":
             record.get("primaryPropertyValue"),
 
