@@ -4,10 +4,7 @@ import os
 
 API_KEY = os.environ["SLEEKFLOW_API_KEY"]
 
-BASE_ENDPOINT = (
-    "https://api.sleekflow.io/api/customObjects/"
-    "crm_campaign_replies/records"
-)
+BASE_ENDPOINT = "https://api.sleekflow.io/api/customObjects/crm_campaign_replies/records"
 
 headers = {
     "Accept": "application/json",
@@ -28,12 +25,7 @@ while True:
         params["ContinuationToken"] = next_token
 
     print("=" * 50)
-    print(f"Requesting page {page}")
-
-    if next_token:
-        print(
-            f"ContinuationToken Length: {len(next_token)}"
-        )
+    print(f"Requesting Page {page}")
 
     response = requests.get(
         BASE_ENDPOINT,
@@ -44,27 +36,19 @@ while True:
     print(f"HTTP Status: {response.status_code}")
 
     if response.status_code != 200:
-        print("Response Text:")
-        print(response.text[:3000])
+        print(response.text)
 
     response.raise_for_status()
 
     data = response.json()
 
-    records = data.get(
-        "records",
-        []
-    )
+    records = data.get("records", [])
 
-    print(
-        f"Records Retrieved: {len(records)}"
-    )
+    print(f"Records Retrieved: {len(records)}")
 
     all_records.extend(records)
 
-    next_token = data.get(
-        "nextContinuationToken"
-    )
+    next_token = data.get("nextContinuationToken")
 
     if not next_token:
         print("No more pages.")
@@ -73,13 +57,51 @@ while True:
     page += 1
 
 print("=" * 50)
-print(
-    f"Total Records Retrieved: {len(all_records)}"
-)
+print(f"Total Records Retrieved: {len(all_records)}")
 
 rows = []
 
 for record in all_records:
 
-    property_values = record.get(
-        "
+    property_values = record.get("propertyValues", {})
+
+    rows.append({
+        "primaryPropertyValue":
+            record.get("primaryPropertyValue"),
+
+        "referencedUserProfileId":
+            record.get("referencedUserProfileId"),
+
+        "createdAt":
+            record.get("createdAt"),
+
+        "updatedAt":
+            record.get("updatedAt"),
+
+        "team_code":
+            property_values.get("team_code"),
+
+        "campaign_code":
+            property_values.get("campaign_code"),
+
+        "enquiry_item":
+            property_values.get("enquiry_item"),
+
+        "ec_member_id":
+            property_values.get("ec_member_id"),
+
+        "incoming_channel":
+            property_values.get("incoming_channel")
+    })
+
+df = pd.DataFrame(rows)
+
+df.to_csv(
+    "SleekFlow.csv",
+    index=False,
+    encoding="utf-8-sig"
+)
+
+print("=" * 50)
+print(f"CSV created successfully")
+print(f"Rows exported: {len(df)}")
