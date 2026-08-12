@@ -3,12 +3,22 @@ import os
 
 API_KEY = os.environ["SLEEKFLOW_API_KEY"]
 
+BASE_ENDPOINT = (
+    "https://api.sleekflow.io/api/customObjects/"
+    "crm_campaign_replies/records"
+)
+
+headers = {
+    "Accept": "application/json",
+    "X-Sleekflow-Api-Key": API_KEY,
+    "Content-Type": "application/json"
+}
+
+# PAGE 1
+
 response = requests.get(
-    "https://api.sleekflow.io/api/customObjects/crm_campaign_replies/records",
-    headers={
-        "Accept": "application/json",
-        "X-Sleekflow-Api-Key": API_KEY
-    },
+    BASE_ENDPOINT,
+    headers=headers,
     params={
         "limit": 1000
     }
@@ -20,8 +30,25 @@ data = response.json()
 
 token = data.get("nextContinuationToken")
 
-print("TOKEN LENGTH:")
-print(len(token))
+print("PAGE1 STATUS:", response.status_code)
+print("TOKEN LENGTH:", len(token))
 
-print("\nTOKEN PREVIEW:")
-print(token[:1000])
+# PAGE 2
+
+response2 = requests.request(
+    "GET",
+    BASE_ENDPOINT,
+    headers=headers,
+    params={
+        "limit": 1000
+    },
+    json={
+        "ContinuationToken": token
+    }
+)
+
+print("PAGE2 STATUS:")
+print(response2.status_code)
+
+print("PAGE2 RESPONSE:")
+print(response2.text[:5000])
