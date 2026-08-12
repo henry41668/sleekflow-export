@@ -4,9 +4,9 @@ import os
 
 API_KEY = os.environ["SLEEKFLOW_API_KEY"]
 
-BASE_URL = (
+BASE_ENDPOINT = (
     "https://api.sleekflow.io/api/customObjects/"
-    "crm_campaign_replies/records?limit=1000"
+    "crm_campaign_replies/records"
 )
 
 headers = {
@@ -16,20 +16,36 @@ headers = {
 
 all_records = []
 next_token = None
+page = 1
 
 while True:
 
-    url = BASE_URL
+    params = {
+        "limit": 1000
+    }
 
     if next_token:
-        url += f"&continuationToken={next_token}"
+        params["ContinuationToken"] = next_token
 
-    print(f"Calling: {url}")
+    print("=" * 50)
+    print(f"Requesting page {page}")
+
+    if next_token:
+        print(
+            f"ContinuationToken Length: {len(next_token)}"
+        )
 
     response = requests.get(
-        url,
-        headers=headers
+        BASE_ENDPOINT,
+        headers=headers,
+        params=params
     )
+
+    print(f"HTTP Status: {response.status_code}")
+
+    if response.status_code != 200:
+        print("Response Text:")
+        print(response.text[:3000])
 
     response.raise_for_status()
 
@@ -40,73 +56,30 @@ while True:
         []
     )
 
+    print(
+        f"Records Retrieved: {len(records)}"
+    )
+
     all_records.extend(records)
 
     next_token = data.get(
         "nextContinuationToken"
     )
 
-    print(
-        f"Retrieved {len(records)} rows"
-    )
-
     if not next_token:
+        print("No more pages.")
         break
+
+    page += 1
+
+print("=" * 50)
+print(
+    f"Total Records Retrieved: {len(all_records)}"
+)
 
 rows = []
 
 for record in all_records:
 
-    pv = record.get(
-        "propertyValues",
-        {}
-    )
-
-    rows.append({
-        "primaryPropertyValue":
-            record.get(
-                "primaryPropertyValue"
-            ),
-
-        "team_code":
-            pv.get("team_code"),
-
-        "campaign_code":
-            pv.get("campaign_code"),
-
-        "enquiry_item":
-            pv.get("enquiry_item"),
-
-        "ec_member_id":
-            pv.get("ec_member_id"),
-
-        "incoming_channel":
-            pv.get("incoming_channel"),
-
-        "referencedUserProfileId":
-            record.get(
-                "referencedUserProfileId"
-            ),
-
-        "createdAt":
-            record.get(
-                "createdAt"
-            ),
-
-        "updatedAt":
-            record.get(
-                "updatedAt"
-            )
-    })
-
-df = pd.DataFrame(rows)
-
-df.to_csv(
-    "SleekFlow.csv",
-    index=False,
-    encoding="utf-8-sig"
-)
-
-print(
-    f"Finished. Total rows: {len(df)}"
-)
+    property_values = record.get(
+        "
