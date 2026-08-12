@@ -34,10 +34,10 @@ jobs:
       run: |
         python export.py
 
-    - name: Upload CSV
+    - name: Upload Output
 
       uses: actions/upload-artifact@v4
 
       with:
-        name: sleekflow-export
-        path: SleekFlow.csv
+        name: sleekflow-debug
+        path: first_response.json
