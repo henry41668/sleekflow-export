@@ -49,6 +49,6 @@ jobs:
 
           git add exports/
 
-          git diff --staged --quiet || git commit -m "Auto export SleekFlow CSV"
+          git diff --staged --quiet || git commit -m "SleekFlow Export $(date +%Y%m%d)"
 
           git push
