@@ -154,7 +154,7 @@ today = datetime.now().strftime(
 )
 
 filename = (
-    f"SleekFlow_{today}.csv"
+    f"SleekFlow_CustomObject_{today}.csv"
 )
 
 df.to_csv(
